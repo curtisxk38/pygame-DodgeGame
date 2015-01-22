@@ -34,13 +34,15 @@ class Player(pygame.sprite.Sprite):
         self.move = vector.Vector(self.rect.centerx, self.rect.centery)
         self.speed = speed
         self.life = 5
+        self.last_hit = pygame.time.get_ticks()
+
         self.boundary_rect = pygame.Rect(50, 0, SCREEN_SIZE[0] - 50, SCREEN_SIZE[1])
 
         self.direction = KEY_BINDINGS["RIGHT"]
         self.old_direction = None
         self.redraw = False
         self.image = None
-        self.frame = 0
+        self.current_frame = 0
         self.frames = self.get_frames()
         self.animate_timer = 0.0
         self.animate_fps = 8.0
@@ -49,14 +51,14 @@ class Player(pygame.sprite.Sprite):
         self.adjust_images()
 
     def get_frames(self):
-        #Get a list of all frames
+        # Get a list of all frames
         sheet = PLAYER_IMAGE
-        indices = [[0,0], [1,0], [2,0]]
+        indices = [[0, 0], [1, 0], [2, 0]]
         return get_images(sheet, indices, self.rect.size)
 
     def make_frame_dict(self):
-        #Create a dictionary of direction keys to frames
-        #Use transform functions to reduce the size of the sprite sheet used
+        # Create a dictionary of direction keys to frames
+        # Use transform functions to reduce the size of the sprite sheet used
         frames = {None : [self.frames[0]],
                   KEY_BINDINGS["LEFT"] : [self.frames[1],
                                           self.frames[2]],
@@ -72,17 +74,17 @@ class Player(pygame.sprite.Sprite):
         self.make_image()
 
     def make_image(self):
-        #Update animation as needed
+        # Update animation as needed
         now = pygame.time.get_ticks()
         if self.redraw or now - self.animate_timer > 1000/self.animate_fps:
             if self.direction is not None:
-                self.frame = (self.frame + 1) % (len(self.walk_frames))
-                self.image = self.walk_frames[self.frame]
+                self.current_frame = (self.current_frame + 1) % (len(self.walk_frames))
+                self.image = self.walk_frames[self.current_frame]
             else:
                 self.image = self.frames[0]
             self.animate_timer = now
         if not self.image:
-            self.image = self.walk_frames[self.frame]
+            self.image = self.walk_frames[self.current_frame]
         self.redraw = False
 
     def change_direction(self, pos_change):
@@ -93,13 +95,22 @@ class Player(pygame.sprite.Sprite):
         elif pos_change.x == 0:
             self.direction = None
 
-    def update(self, pressed_keys, dt):
+    def hit(self, sprite_group):
+        now = pygame.time.get_ticks()
+        if now - self.last_hit > 100:
+            for sprite in sprite_group:
+                if isinstance(sprite, Ball):
+                    if self.rect.colliderect(sprite.rect):
+                            self.life -= 1
+            return now
+        return self.last_hit
+
+    def update(self, pressed_keys, sprite_group, dt):
         change = vector.Vector(0, 0)
         for key in DIRECT_DICT:
             if pressed_keys[key]:
                 change.add_vector(DIRECT_DICT[key])
         self.change_direction(change)
-        #print(self.direction)
         frame_speed = self.speed * dt
         change.multiply_by_scalar(frame_speed)
         self.move.add_vector(change)
@@ -110,8 +121,11 @@ class Player(pygame.sprite.Sprite):
             self.move = vector.Vector(self.rect.centerx, self.rect.centery)
         self.adjust_images()
 
+        self.last_hit = self.hit(sprite_group)
+
     def draw(self, surface):
         surface.blit(self.image, self.rect)
+
 
 class Ball(pygame.sprite.Sprite):
     def __init__(self, speed, angle, rect):
@@ -144,6 +158,7 @@ class Ball(pygame.sprite.Sprite):
                     self.rect.bottom = thingy.rect.top
                     self.velocity.y = -self.velocity.y + self.BOUNCE_LOSS
                     self.move = vector.Vector(self.rect.centerx, self.rect.centery)
+                    #BOUNCE_SOUND.play()
         if self.rect.left > SCREEN_SIZE[0]:
             pygame.sprite.Sprite.kill(self)
             score[0] += 1
@@ -177,11 +192,11 @@ class Text():
         self.text = self.font.render(text, 1, color)
         self.pos = pos
 
-    def draw(self, surface):
-        surface.blit(self.text, self.pos)
-
     def update(self, text_to_render):
         self.text = self.font.render(text_to_render, 1, self.color)
+
+    def draw(self, surface):
+        surface.blit(self.text, self.pos)
 
 
 class Control():
@@ -195,6 +210,7 @@ class Control():
         self.player = self.make_player()
         self.make_walls()
         self.score_text = self.make_score_text()
+        self.life_text = self.make_life_text()
 
     def make_player(self):
         player = Player(200, (0, 0, 16, 32))
@@ -214,7 +230,11 @@ class Control():
         return timer
 
     def make_score_text(self):
-        text = Text(str(score[0]), 20, BLACK, (0, 460))
+        text = Text("Score: " + str(score[0]), 20, BLACK, (0, SCREEN_SIZE[1] - 20))
+        return text
+
+    def make_life_text(self):
+        text = Text("Life: " + str(self.player.life), 20, BLACK, (SCREEN_SIZE[0] - 80, SCREEN_SIZE[1] - 20))
         return text
 
     def event_loop(self):
@@ -229,12 +249,15 @@ class Control():
             time_delta = self.CLOCK.tick(self.fps)/1000.0
             self.event_loop()
             ball_timer = self.make_balls(ball_timer)
-            self.player.update(self.pressed_keys, time_delta)
+            self.player.update(self.pressed_keys, things, time_delta)
             things.update(time_delta)
-            self.score_text.update(str(score[0]))
+            self.score_text.update("Score: " + str(score[0]))
+            self.life_text.update("Life: " + str(self.player.life))
+            # Draw
             self.screen.fill(WHITE)
             things.draw(self.screen)
             self.score_text.draw(self.screen)
+            self.life_text.draw(self.screen)
             self.player.draw(self.screen)
             pygame.display.update()
 
@@ -249,10 +272,12 @@ def get_images(sheet, frame_indices, size):
 if __name__ == "__main__":
     os.environ['SDL_VIDEO_CENTERED'] = '1'
     pygame.init()
+    pygame.mixer.init()
     pygame.display.set_caption("Dodge Game")
     screen = pygame.display.set_mode(SCREEN_SIZE)
     PLAYER_IMAGE = pygame.image.load("sprite_sheet.png").convert()
     PLAYER_IMAGE.set_colorkey(COLOR_KEY)
+    BOUNCE_SOUND = pygame.mixer.Sound("bounce2.wav")
     run = Control()
     run.main_loop()
     pygame.quit()
