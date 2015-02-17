@@ -6,7 +6,7 @@ import math
 import random
 import state
 
-SCREEN_SIZE = (720, 480)
+SCREEN_SIZE = []
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -204,16 +204,23 @@ class Text():
 class GameScreenControl(state.State):
     def __init__(self):
         state.State.__init__(self)
+        self.next = 'menu'
         self.screen = pygame.display.get_surface()
         self.screen_rect = self.screen.get_rect()
-        self.CLOCK = pygame.time.Clock()
-        self.fps = 60.0
-        self.running = True
+
+    def startup(self):
+        SCREEN_SIZE.extend(pygame.display.get_surface().get_size())
+        self.ball_timer = pygame.time.get_ticks()
         self.pressed_keys = pygame.key.get_pressed()
         self.player = self.make_player()
         self.make_walls()
         self.score_text = self.make_score_text()
         self.life_text = self.make_life_text()
+
+    def cleanup(self):
+        life[0] = 5
+        score[0] = 0
+        things.empty()
 
     def make_player(self):
         player = Player(200, (0, 0, 16, 32))
@@ -240,20 +247,17 @@ class GameScreenControl(state.State):
         text = Text("Life: " + str(life[0]), 20, BLACK, (SCREEN_SIZE[0] - 80, SCREEN_SIZE[1] - 20))
         return text
 
-    def event_loop(self):
-        for event in pygame.event.get():
-            self.pressed_keys = pygame.key.get_pressed()
-            if event.type == pygame.QUIT or self.pressed_keys[pygame.K_ESCAPE]:
-                self.running = False
+    def get_event(self, event):
+        self.pressed_keys = pygame.key.get_pressed()
+        if self.pressed_keys[pygame.K_ESCAPE]:
+            self.done = True
 
-    def main_loop(self):
-        ball_timer = pygame.time.get_ticks()
-        while self.running and life[0] > 0:
-            time_delta = self.CLOCK.tick(self.fps)/1000.0
-            self.event_loop()
-            ball_timer = self.make_balls(ball_timer)
-            self.player.update(self.pressed_keys, things, time_delta)
-            things.update(time_delta)
+    def update(self, temp, dt):
+        #while self.running and life[0] > 0:
+        if life[0] > 0:
+            self.ball_timer = self.make_balls(self.ball_timer)
+            self.player.update(self.pressed_keys, things, dt)
+            things.update(dt)
             self.score_text.update("Score: " + str(score[0]))
             self.life_text.update("Life: " + str(life[0]))
             # Draw
@@ -262,7 +266,8 @@ class GameScreenControl(state.State):
             self.score_text.draw(self.screen)
             self.life_text.draw(self.screen)
             self.player.draw(self.screen)
-            pygame.display.update()
+        else:
+            self.done = True
 
 
 def get_images(sheet, frame_indices, size):
@@ -277,7 +282,8 @@ if __name__ == "__main__":
     pygame.init()
     pygame.mixer.init()
     pygame.display.set_caption("Dodge Game")
-    screen = pygame.display.set_mode(SCREEN_SIZE)
+    screen = pygame.display.set_mode((720, 480))
+    SCREEN_SIZE = pygame.display.get_surface().get_size()
 
     run = GameScreenControl()
     run.main_loop()
