@@ -22,6 +22,7 @@ class DodgeGame():
         self.state_dict = state_dict
         self.state_name = start_state
         self.state = self.state_dict[self.state_name]
+        self.state.startup()
 
     def flip_state(self):
         self.state.done = False

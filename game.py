@@ -252,8 +252,7 @@ class GameScreenControl(state.State):
         if self.pressed_keys[pygame.K_ESCAPE]:
             self.done = True
 
-    def update(self, temp, dt):
-        #while self.running and life[0] > 0:
+    def update(self, screen, dt):
         if life[0] > 0:
             self.ball_timer = self.make_balls(self.ball_timer)
             self.player.update(self.pressed_keys, things, dt)
@@ -278,14 +277,4 @@ def get_images(sheet, frame_indices, size):
     return frames
 
 if __name__ == "__main__":
-    os.environ['SDL_VIDEO_CENTERED'] = '1'
-    pygame.init()
-    pygame.mixer.init()
-    pygame.display.set_caption("Dodge Game")
-    screen = pygame.display.set_mode((720, 480))
-    SCREEN_SIZE = pygame.display.get_surface().get_size()
-
-    run = GameScreenControl()
-    run.main_loop()
-    pygame.quit()
-    sys.exit()
+    print("Run main.py")
