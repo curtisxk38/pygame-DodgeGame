@@ -23,6 +23,7 @@ DIRECT_DICT = {KEY_BINDINGS["LEFT"]: vector.Vector(-2, 0),
                KEY_BINDINGS["RIGHT"]: vector.Vector(2, 0)}
 
 things = pygame.sprite.Group()
+balls_collide_with = []
 
 score = [0]
 life = [5]
@@ -37,7 +38,6 @@ class Player(pygame.sprite.Sprite):
         self.rect = pygame.Rect(rect)
         self.move = vector.Vector(self.rect.centerx, self.rect.centery)
         self.speed = speed
-        self.last_hit = pygame.time.get_ticks()
 
         self.boundary_rect = pygame.Rect(50, 0, SCREEN_SIZE[0] - 50, SCREEN_SIZE[1])
 
@@ -99,14 +99,12 @@ class Player(pygame.sprite.Sprite):
             self.direction = None
 
     def hit(self, sprite_group):
-        now = pygame.time.get_ticks()
-        if now - self.last_hit > 100:
-            for sprite in sprite_group:
-                if isinstance(sprite, Ball):
-                    if self.rect.colliderect(sprite.rect):
-                            life[0] -= 1
-            return now
-        return self.last_hit
+        for sprite in sprite_group:
+            if isinstance(sprite, Ball) and sprite not in balls_collide_with and self.rect.colliderect(sprite.rect):
+                balls_collide_with.append(sprite)
+                life[0] -= 1
+            elif sprite in balls_collide_with and not self.rect.colliderect(sprite.rect):
+                balls_collide_with.remove(sprite)
 
     def update(self, pressed_keys, sprite_group, dt):
         change = vector.Vector(0, 0)
@@ -123,8 +121,7 @@ class Player(pygame.sprite.Sprite):
             self.rect.clamp_ip(self.boundary_rect)
             self.move = vector.Vector(self.rect.centerx, self.rect.centery)
         self.adjust_images()
-
-        self.last_hit = self.hit(sprite_group)
+        self.hit(sprite_group)
 
     def draw(self, surface):
         surface.blit(self.image, self.rect)
