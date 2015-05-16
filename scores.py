@@ -13,7 +13,7 @@ class ScoresScreenControl(state.State):
         rect = pygame.Rect(0, 0, 80, 20)
         rect.centerx, rect.centery = pygame.display.get_surface().get_size()[0]/2, pygame.display.get_surface().get_size()[1]-60
         self.menu_button = button.Button(rect, "Menu", (0, 0, 0), 15, self.finish)
-        self.font = pygame.font.Font('freesansbold.ttf', 30)
+        self.score_text = []
 
         self.score_board = None
 
@@ -31,11 +31,27 @@ class ScoresScreenControl(state.State):
 
     def make_game_over_text(self):
         """Precondition: self.text is not None"""
-        self.text = self.font.render("Game Over! Your score was %s!" % self.recent_score, True, BLACK)
-        self.text_rect = self.text.get_rect()
-        self.text_rect.center = (pygame.display.get_surface().get_size()[0]/2, 50)
+        font = pygame.font.Font('freesansbold.ttf', 30)
+        self.game_over_text = font.render("Game Over! Your score was %s!" % self.recent_score, True, BLACK)
+        self.game_over_text_rect = self.game_over_text.get_rect()
+        self.game_over_text_rect.center = (pygame.display.get_surface().get_size()[0]/2, 50)
 
+    def make_score_board_text(self):
+        font = pygame.font.Font('freesansbold.ttf', 25)
+        # Making the recent score underlined
+        recent_index = -1
+        if self.recent_score is not None and self.recent_score in self.score_board:
+            recent_index = self.score_board.index(self.recent_score)
 
+        for place, score in enumerate(self.score_board):
+            if place == recent_index:
+                font.set_underline(True)
+            text_line = font.render("%s. %s" % (place+1,score), True, BLACK)
+            if font.get_underline():
+                font.set_underline(False)
+            text_line_rect = text_line.get_rect()
+            text_line_rect.center = (pygame.display.get_surface().get_size()[0]/2, place*30 + 120)
+            self.score_text.append((text_line, text_line_rect))
 
     def finish(self):
         self.done = True
@@ -50,12 +66,12 @@ class ScoresScreenControl(state.State):
             self.update_score_board()
             self.make_game_over_text()
 
-
-
+        self.make_score_board_text()
 
     def cleanup(self):
         pickle.dump(self.score_board, open("scoreboard.pkl", "wb"))
         self.recent_score = None
+        self.score_text.clear()
 
     def get_event(self, event):
         self.menu_button.get_event(event)
@@ -65,5 +81,7 @@ class ScoresScreenControl(state.State):
     def update(self, screen, dt):
         screen.fill((255, 255, 255))
         if self.recent_score is not None:
-            screen.blit(self.text, self.text_rect)
+            screen.blit(self.game_over_text, self.game_over_text_rect)
+        for text_tuple in self.score_text:
+            screen.blit(*text_tuple)
         self.menu_button.update(screen)
