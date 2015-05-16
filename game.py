@@ -201,9 +201,11 @@ class Text():
 class GameScreenControl(state.State):
     def __init__(self):
         state.State.__init__(self)
-        self.next = 'menu'
+        self.next = 'scores'
         self.screen = pygame.display.get_surface()
         self.screen_rect = self.screen.get_rect()
+        #this could be better
+        self.hold_score = None
 
     def startup(self):
         SCREEN_SIZE.extend(pygame.display.get_surface().get_size())
@@ -216,6 +218,7 @@ class GameScreenControl(state.State):
 
     def cleanup(self):
         life[0] = 5
+        self.hold_score = score[0]
         score[0] = 0
         things.empty()
 

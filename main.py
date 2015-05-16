@@ -4,6 +4,7 @@ import sys
 import pygame
 import game
 import menu
+import scores
 
 
 class DodgeGame():
@@ -29,8 +30,13 @@ class DodgeGame():
         previous, self.state_name = self.state_name, self.state.next
         self.state.cleanup()
         self.state = self.state_dict[self.state_name]
+        # before doing anything else, get score from game state, and send to scores state
+        # probably a better way to do this
+        if previous == "game":
+            self.state_dict[self.state_name].receive_recent_score(self.state_dict[previous].hold_score)
         self.state.startup()
         self.state.previous = previous
+
 
     def update(self, dt):
         if self.state.quit:
@@ -64,7 +70,9 @@ if __name__ == "__main__":
     start = DodgeGame(screen_size, screen_fps)
 
     state_dict = {'menu': menu.MenuScreenControl(),
-                  'game': game.GameScreenControl()
+                  'game': game.GameScreenControl(),
+                  # 'instructions': todo
+                  'scores': scores.ScoresScreenControl()
     }
     start.setup_states(state_dict, 'menu')
     start.main_loop()
