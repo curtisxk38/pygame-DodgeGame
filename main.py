@@ -5,6 +5,7 @@ import pygame
 import game
 import menu
 import scores
+import instructions
 
 
 class DodgeGame():
@@ -71,7 +72,7 @@ if __name__ == "__main__":
 
     state_dict = {'menu': menu.MenuScreenControl(),
                   'game': game.GameScreenControl(),
-                  # 'instructions': todo
+                  'instructions': instructions.InstructionsScreenControl(),
                   'scores': scores.ScoresScreenControl()
     }
     start.setup_states(state_dict, 'menu')

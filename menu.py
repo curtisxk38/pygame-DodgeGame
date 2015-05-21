@@ -26,12 +26,12 @@ class MenuScreenControl(state.State):
         self.quit = True
 
     def make_buttons(self):
-        rect = pygame.Rect(0, 0, 80, 20)
+        rect = pygame.Rect(0, 0, 100, 20)
         rect.centerx = pygame.display.get_surface().get_size()[0]/2
         rect.centery = pygame.display.get_surface().get_size()[1]/2 - 30
         self.button_list.append(button.Button(rect, "Start", (0, 0, 0), 15, self.go_to_game))
         rect.centery += 30
-        self.button_list.append(button.Button(rect, "Controls", (0, 0, 0), 15, None))
+        self.button_list.append(button.Button(rect, "Instructions", (0, 0, 0), 15, self.go_to_instructions))
         rect.centery += 30
         self.button_list.append(button.Button(rect, "Scores", (0, 0, 0), 15, self.go_to_scores))
         rect.centery += 30
