@@ -42,7 +42,7 @@ class InstructionsScreenControl(state.State):
             self.pressed_button_index = 1
             self.buttonlist[1].text = "___"
             self.buttonlist[1].render_text()
-        else:
+        elif self.waiting_for_key and self.pressed_button_index == 1:
             self.waiting_for_key = False
             self.buttonlist[1].text = pygame.key.name(self.key_bindings["LEFT"])
             self.buttonlist[1].render_text()
@@ -53,7 +53,7 @@ class InstructionsScreenControl(state.State):
             self.pressed_button_index = 2
             self.buttonlist[2].text = "___"
             self.buttonlist[2].render_text()
-        else:
+        elif self.waiting_for_key and self.pressed_button_index == 2:
             self.waiting_for_key = False
             self.buttonlist[2].text = pygame.key.name(self.key_bindings["RIGHT"])
             self.buttonlist[2].render_text()
@@ -94,6 +94,8 @@ class InstructionsScreenControl(state.State):
 
     def cleanup(self):
         pickle.dump(self.key_bindings, open("keybindings.pkl", "wb"))
+        del self.buttonlist[1:]
+        self.waiting_for_key = False
 
     def get_event(self, event):
         self.pressed_keys = pygame.key.get_pressed()
@@ -103,8 +105,6 @@ class InstructionsScreenControl(state.State):
             self.done = True
         if self.waiting_for_key and event.type == pygame.KEYDOWN:
             self.bind_key(event.key)
-
-
 
     def update(self, screen, dt):
         screen.fill((255, 255, 255))
