@@ -1,10 +1,9 @@
-import os
-import sys
 import pygame
 import vector
 import math
 import random
 import state
+import pickle
 
 SCREEN_SIZE = []
 
@@ -16,11 +15,8 @@ TRANSPARENT = (0, 0, 0, 0)
 
 COLOR_KEY = (255, 0, 255)
 
-KEY_BINDINGS = {"LEFT": pygame.K_LEFT,
-                "RIGHT": pygame.K_RIGHT}
+KEY_BINDINGS = {}
 
-DIRECT_DICT = {KEY_BINDINGS["LEFT"]: vector.Vector(-2, 0),
-               KEY_BINDINGS["RIGHT"]: vector.Vector(2, 0)}
 
 things = pygame.sprite.Group()
 balls_collide_with = []
@@ -34,6 +30,8 @@ class Player(pygame.sprite.Sprite):
         self.PLAYER_IMAGE = pygame.image.load("sprite_sheet.png").convert()
         self.PLAYER_IMAGE.set_colorkey(COLOR_KEY)
 
+        self.DIRECT_DICT = {KEY_BINDINGS["LEFT"]: vector.Vector(-2, 0),
+               KEY_BINDINGS["RIGHT"]: vector.Vector(2, 0)}
 
         self.rect = pygame.Rect(rect)
         self.move = vector.Vector(self.rect.centerx, self.rect.centery)
@@ -108,9 +106,9 @@ class Player(pygame.sprite.Sprite):
 
     def update(self, pressed_keys, sprite_group, dt):
         change = vector.Vector(0, 0)
-        for key in DIRECT_DICT:
+        for key in self.DIRECT_DICT:
             if pressed_keys[key]:
-                change.add_vector(DIRECT_DICT[key])
+                change.add_vector(self.DIRECT_DICT[key])
         self.change_direction(change)
         frame_speed = self.speed * dt
         change.multiply_by_scalar(frame_speed)
@@ -208,6 +206,7 @@ class GameScreenControl(state.State):
         self.hold_score = None
 
     def startup(self):
+        KEY_BINDINGS.update(load_keybindings())
         SCREEN_SIZE.extend(pygame.display.get_surface().get_size())
         self.ball_timer = pygame.time.get_ticks()
         self.pressed_keys = pygame.key.get_pressed()
@@ -267,6 +266,15 @@ class GameScreenControl(state.State):
             self.player.draw(self.screen)
         else:
             self.done = True
+
+def load_keybindings():
+    try:
+        key_bindings_dict = pickle.load(open("keybindings.pkl", "rb"))
+    except FileNotFoundError:
+        key_bindings_dict = {"LEFT": pygame.K_LEFT,
+                "RIGHT": pygame.K_RIGHT}
+        pickle.dump(key_bindings_dict, open("keybindings.pkl", "wb"))
+    return key_bindings_dict
 
 
 def get_images(sheet, frame_indices, size):
