@@ -4,6 +4,8 @@ import button
 import pickle
 
 BLACK = (0,0,0)
+ORANGE = (255, 102, 0)
+TRANSPARENT = (0, 0, 0, 0)
 
 
 class InstructionsScreenControl(state.State):
@@ -15,6 +17,7 @@ class InstructionsScreenControl(state.State):
         self.font = pygame.font.Font('freesansbold.ttf', 20)
         self.text = []
         self.pressed_keys = None
+        self.ball = self.make_ball()
 
         self.waiting_for_key = False
         self.pressed_button_index = 1
@@ -35,6 +38,21 @@ class InstructionsScreenControl(state.State):
         right_rect = right.get_rect()
         right_rect.topleft = (40, 240)
         self.text.append((right, right_rect))
+
+        dodge = self.font.render("Dodge these:", True, BLACK)
+        dodge_rect = dodge.get_rect()
+        dodge_rect.topright = (pygame.display.get_surface().get_size()[0]/2, 30)
+        self.text.append((dodge, dodge_rect))
+
+    def make_ball(self):
+        rect = pygame.Rect(0, 0, 30, 30)
+        rect.center = (pygame.display.get_surface().get_size()[0]/2 + 40, 40)
+        image = pygame.Surface(rect.size).convert_alpha()
+        image.fill(TRANSPARENT)
+        image_rect = image.get_rect()
+        pygame.draw.ellipse(image, BLACK, image_rect)
+        pygame.draw.ellipse(image, ORANGE, image_rect.inflate(-4, -4))
+        return image, rect
 
     def new_left_key_function(self):
         if not self.waiting_for_key:
@@ -89,7 +107,7 @@ class InstructionsScreenControl(state.State):
         self.load_keybindings()
         if not self.text:
             self.make_text()
-        if len(self.buttonlist) < 3:
+        if len(self.buttonlist) < 4:
             self.make_key_buttons()
 
     def cleanup(self):
@@ -112,3 +130,4 @@ class InstructionsScreenControl(state.State):
             button.update(screen)
         for i in self.text:
             screen.blit(*i)
+        screen.blit(*self.ball)
