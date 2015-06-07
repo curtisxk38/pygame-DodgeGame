@@ -5,6 +5,8 @@ import random
 import state
 import pickle
 
+pygame.mixer.init()
+
 SCREEN_SIZE = []
 
 WHITE = (255, 255, 255)
@@ -17,6 +19,7 @@ COLOR_KEY = (255, 0, 255)
 
 KEY_BINDINGS = {}
 
+SOUND = {"hurt": pygame.mixer.Sound("hurt.wav")}
 
 things = pygame.sprite.Group()
 balls_collide_with = []
@@ -31,7 +34,7 @@ class Player(pygame.sprite.Sprite):
         self.PLAYER_IMAGE.set_colorkey(COLOR_KEY)
 
         self.DIRECT_DICT = {KEY_BINDINGS["LEFT"]: vector.Vector(-2, 0),
-               KEY_BINDINGS["RIGHT"]: vector.Vector(2, 0)}
+                            KEY_BINDINGS["RIGHT"]: vector.Vector(2, 0)}
 
         self.rect = pygame.Rect(rect)
         self.move = vector.Vector(self.rect.centerx, self.rect.centery)
@@ -101,6 +104,8 @@ class Player(pygame.sprite.Sprite):
             if isinstance(sprite, Ball) and sprite not in balls_collide_with and self.rect.colliderect(sprite.rect):
                 balls_collide_with.append(sprite)
                 life[0] -= 1
+                if life[0] != 0:
+                    SOUND["hurt"].play()
             elif sprite in balls_collide_with and not self.rect.colliderect(sprite.rect):
                 balls_collide_with.remove(sprite)
 

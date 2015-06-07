@@ -53,18 +53,21 @@ class DodgeGame():
             self.state.get_event(event)
 
     def main_loop(self):
+        pygame.mixer.music.play(loops=-1)
         while not self.game_done:
             time_delta = self.clock.tick(self.fps)/1000.0
             self.event_loop()
             self.update(time_delta)
             pygame.display.update()
-
+        pygame.mixer.music.stop()
 
 if __name__ == "__main__":
     os.environ['SDL_VIDEO_CENTERED'] = '1'
     pygame.init()
     pygame.mixer.init()
     pygame.display.set_caption("Dodge Game")
+
+    pygame.mixer.music.load("bgm.ogg")
 
     screen_size = (720, 480)
     screen_fps = 60.0
