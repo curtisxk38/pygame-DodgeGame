@@ -53,11 +53,17 @@ class DodgeGame():
             self.state.get_event(event)
 
     def main_loop(self):
+    
         pygame.mixer.music.play(loops=-1)
+        desired_fps = 60.0
+        ms_per_update = 1000.0 / desired_fps
+        lag = 0.0
         while not self.game_done:
-            time_delta = self.clock.tick(self.fps)/1000.0
+            lag+=self.clock.tick()
             self.event_loop()
-            self.update(time_delta)
+            while lag >= ms_per_update:
+            	self.update(0)
+            	lag -= ms_per_update
             pygame.display.update()
         pygame.mixer.music.stop()
 

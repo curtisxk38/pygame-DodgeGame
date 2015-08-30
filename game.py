@@ -115,7 +115,7 @@ class Player(pygame.sprite.Sprite):
             if pressed_keys[key]:
                 change.add_vector(self.DIRECT_DICT[key])
         self.change_direction(change)
-        frame_speed = self.speed * dt
+        frame_speed = self.speed * .016 # *dt
         change.multiply_by_scalar(frame_speed)
         self.move.add_vector(change)
         self.rect.center = self.move.x, self.move.y
@@ -151,7 +151,7 @@ class Ball(pygame.sprite.Sprite):
     def update(self, dt):
         self.velocity.add_vector(vector.Vector(0, .8))
         change = self.velocity
-        frame_speed = 60 * dt
+        frame_speed = 60 * .0167
         change.multiply_by_scalar(frame_speed)
         self.move.add_vector(change)
         self.rect.center = self.move.x, self.move.y
@@ -260,7 +260,7 @@ class GameScreenControl(state.State):
         if life[0] > 0:
             self.ball_timer = self.make_balls(self.ball_timer)
             self.player.update(self.pressed_keys, things, dt)
-            things.update(dt)
+            things.update(.016)
             self.score_text.update("Score: " + str(score[0]))
             self.life_text.update("Life: " + str(life[0]))
             # Draw
