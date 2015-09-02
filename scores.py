@@ -78,7 +78,7 @@ class ScoresScreenControl(state.State):
         if pygame.key.get_pressed()[pygame.K_ESCAPE]:
             self.done = True
 
-    def update(self, screen, dt):
+    def update(self, screen):
         screen.fill((255, 255, 255))
         if self.recent_score is not None:
             screen.blit(self.game_over_text, self.game_over_text_rect)

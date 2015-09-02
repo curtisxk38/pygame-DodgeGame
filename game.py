@@ -109,14 +109,13 @@ class Player(pygame.sprite.Sprite):
             elif sprite in balls_collide_with and not self.rect.colliderect(sprite.rect):
                 balls_collide_with.remove(sprite)
 
-    def update(self, pressed_keys, sprite_group, dt):
+    def update(self, pressed_keys, sprite_group):
         change = vector.Vector(0, 0)
         for key in self.DIRECT_DICT:
             if pressed_keys[key]:
                 change.add_vector(self.DIRECT_DICT[key])
         self.change_direction(change)
-        frame_speed = self.speed * .016 # *dt
-        change.multiply_by_scalar(frame_speed)
+        change.multiply_by_scalar(self.speed)
         self.move.add_vector(change)
         self.rect.center = self.move.x, self.move.y
 
@@ -151,8 +150,6 @@ class Ball(pygame.sprite.Sprite):
     def update(self, dt):
         self.velocity.add_vector(vector.Vector(0, .8))
         change = self.velocity
-        frame_speed = 60 * .0167
-        change.multiply_by_scalar(frame_speed)
         self.move.add_vector(change)
         self.rect.center = self.move.x, self.move.y
         for thingy in things:
@@ -227,7 +224,7 @@ class GameScreenControl(state.State):
         things.empty()
 
     def make_player(self):
-        player = Player(200, (0, 0, 16, 32))
+        player = Player(3, (0, 0, 16, 32))
         player.move.y = SCREEN_SIZE[1] - player.rect.height/2 - 50
         return player
 
@@ -256,10 +253,10 @@ class GameScreenControl(state.State):
         if self.pressed_keys[pygame.K_ESCAPE]:
             self.done = True
 
-    def update(self, screen, dt):
+    def update(self, screen):
         if life[0] > 0:
             self.ball_timer = self.make_balls(self.ball_timer)
-            self.player.update(self.pressed_keys, things, dt)
+            self.player.update(self.pressed_keys, things)
             things.update(.016)
             self.score_text.update("Score: " + str(score[0]))
             self.life_text.update("Life: " + str(life[0]))

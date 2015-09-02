@@ -124,7 +124,7 @@ class InstructionsScreenControl(state.State):
         if self.waiting_for_key and event.type == pygame.KEYDOWN:
             self.bind_key(event.key)
 
-    def update(self, screen, dt):
+    def update(self, screen):
         screen.fill((255, 255, 255))
         for button in self.buttonlist:
             button.update(screen)

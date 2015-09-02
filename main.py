@@ -39,12 +39,12 @@ class DodgeGame():
         self.state.previous = previous
 
 
-    def update(self, dt):
+    def update(self):
         if self.state.quit:
             self.game_done = True
         elif self.state.done:
             self.flip_state()
-        self.state.update(self.screen, dt)
+        self.state.update(self.screen)
 
     def event_loop(self):
         for event in pygame.event.get():
@@ -62,7 +62,7 @@ class DodgeGame():
             lag+=self.clock.tick()
             self.event_loop()
             while lag >= ms_per_update:
-            	self.update(0)
+            	self.update()
             	lag -= ms_per_update
             pygame.display.update()
         pygame.mixer.music.stop()

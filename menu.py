@@ -58,7 +58,7 @@ class MenuScreenControl(state.State):
         if pygame.key.get_pressed()[pygame.K_ESCAPE]:
             self.quit = True
 
-    def update(self, screen, dt):
+    def update(self, screen):
         screen.fill((255, 255, 255))
         screen.blit(*self.title_text)
         for b in self.button_list:
